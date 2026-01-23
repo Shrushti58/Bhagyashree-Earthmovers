@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, CheckCircle } from 'lucide-react';
+import axios from 'axios';
+import { ArrowRight, CheckCircle, Loader } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { API_URL } from '../config/api';
 
 export default function Services() {
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [hoveredService, setHoveredService] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const { theme } = useTheme();
 
-  const services = [
+  // Fallback services in case API fails
+  const fallbackServices = [
     {
       id: 1,
       title: 'Excavation Work',
@@ -39,13 +45,72 @@ export default function Services() {
     }
   ];
 
+  // Fetch services from API
   useEffect(() => {
-    if (!isAutoPlaying) return;
+    const fetchServices = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const { data } = await axios.get(API_URL.SERVICES);
+        
+        // Handle different response formats
+        const servicesData = Array.isArray(data) ? data : (data?.services || data?.data || []);
+        
+        if (servicesData.length > 0) {
+          setServices(servicesData);
+        } else {
+          // Use fallback if no services found
+          setServices(fallbackServices);
+        }
+      } catch (err) {
+        console.error('Error fetching services:', err);
+        setError(err.message);
+        // Use fallback services on error
+        setServices(fallbackServices);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, []);
+
+  // Auto-play carousel
+  useEffect(() => {
+    if (!isAutoPlaying || services.length === 0) return;
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % services.length);
     }, 3500);
     return () => clearInterval(timer);
   }, [isAutoPlaying, services.length]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className={`relative py-12 lg:py-20 overflow-hidden transition-colors duration-300 ${
+        theme === 'dark' ? 'bg-brand-black' : 'bg-brand-white'
+      }`}>
+        <div className="flex justify-center items-center min-h-[500px]">
+          <Loader className="w-12 h-12 text-primary animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  // No services state
+  if (services.length === 0) {
+    return (
+      <div className={`relative py-12 lg:py-20 overflow-hidden transition-colors duration-300 ${
+        theme === 'dark' ? 'bg-brand-black' : 'bg-brand-white'
+      }`}>
+        <div className="flex justify-center items-center min-h-[500px]">
+          <p className={`text-lg ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+            No services available at the moment.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`relative py-12 lg:py-20 overflow-hidden transition-colors duration-300 ${
@@ -95,11 +160,11 @@ export default function Services() {
               className="flex transition-transform duration-1000 ease-out"
               style={{ transform: `translateX(-${currentIndex * 100}%)` }}
             >
-              {services.map((service) => (
+              {services.map((service, idx) => (
                 <div
-                  key={service.id}
+                  key={service._id || service.id || idx}
                   onMouseEnter={() => {
-                    setHoveredService(service.id);
+                    setHoveredService(service._id || service.id || idx);
                     setIsAutoPlaying(false);
                   }}
                   onMouseLeave={() => {
@@ -112,7 +177,7 @@ export default function Services() {
                     theme === 'dark'
                       ? 'bg-gray-900/90 border-gray-800 hover:border-primary/50'
                       : 'bg-white border-gray-200 hover:border-primary/50'
-                  } ${hoveredService === service.id ? 'shadow-glow-orange-lg' : 'shadow-2xl'}`}
+                  } ${hoveredService === (service._id || service.id || idx) ? 'shadow-glow-orange-lg' : 'shadow-2xl'}`}
                   style={{ minHeight: '500px' }}>
                     
                     {/* Background Image with Parallax Effect */}
@@ -120,11 +185,12 @@ export default function Services() {
                       <div 
                         className="absolute inset-0 transition-all duration-1000 ease-out"
                         style={{
-                          backgroundImage: `url(${service.image})`,
+                          backgroundImage: service.image ? `url(${service.image})` : 'none',
                           backgroundSize: 'cover',
                           backgroundPosition: 'center',
-                          transform: hoveredService === service.id ? 'scale(1.1)' : 'scale(1.05)',
-                          opacity: hoveredService === service.id ? 0.3 : 0.15
+                          backgroundColor: service.image ? 'transparent' : '#1a1a1a',
+                          transform: hoveredService === (service._id || service.id || idx) ? 'scale(1.1)' : 'scale(1.05)',
+                          opacity: hoveredService === (service._id || service.id || idx) ? 0.3 : 0.15
                         }}
                       ></div>
                       <div className={`absolute inset-0 ${
@@ -141,16 +207,16 @@ export default function Services() {
                       <div className="flex flex-col justify-center space-y-6">
                         {/* Number Badge */}
                         <div className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl transition-all duration-500 ${
-                          hoveredService === service.id
+                          hoveredService === (service._id || service.id || idx)
                             ? 'bg-primary shadow-glow-orange scale-110 rotate-6'
                             : theme === 'dark'
                             ? 'bg-gray-800/80 backdrop-blur-sm'
                             : 'bg-gray-100 backdrop-blur-sm'
                         }`}>
                           <span className={`text-2xl font-bold transition-colors ${
-                            hoveredService === service.id ? 'text-brand-white' : 'text-primary'
+                            hoveredService === (service._id || service.id || idx) ? 'text-brand-white' : 'text-primary'
                           }`}>
-                            {String(service.id).padStart(2, '0')}
+                            {String(idx + 1).padStart(2, '0')}
                           </span>
                         </div>
 
@@ -170,7 +236,7 @@ export default function Services() {
 
                         {/* CTA Button */}
                         <button className={`group inline-flex items-center gap-3 font-semibold py-4 px-8 rounded-xl transition-all duration-500 self-start ${
-                          hoveredService === service.id 
+                          hoveredService === (service._id || service.id || idx)
                             ? 'bg-primary text-brand-white shadow-glow-orange translate-x-2'
                             : theme === 'dark'
                             ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
@@ -178,7 +244,7 @@ export default function Services() {
                         }`}>
                           <span>Learn More</span>
                           <ArrowRight className={`w-5 h-5 transition-transform ${
-                            hoveredService === service.id ? 'translate-x-1' : ''
+                            hoveredService === (service._id || service.id || idx) ? 'translate-x-1' : ''
                           }`} />
                         </button>
                       </div>
@@ -186,11 +252,11 @@ export default function Services() {
                       {/* Right Column - Features */}
                       <div className="flex flex-col justify-center">
                         <div className="space-y-3">
-                          {service.features.map((feature, idx) => (
+                          {(service.features && service.features.length > 0 ? service.features : ['No features available']).map((feature, featureIdx) => (
                             <div 
-                              key={idx}
+                              key={featureIdx}
                               className={`flex items-center gap-4 p-4 rounded-2xl backdrop-blur-sm transition-all duration-500 ${
-                                hoveredService === service.id 
+                                hoveredService === (service._id || service.id || idx)
                                   ? theme === 'dark' 
                                     ? 'bg-gray-800/80 border border-gray-700 translate-x-2' 
                                     : 'bg-white/90 border border-gray-200 translate-x-2'
@@ -198,15 +264,15 @@ export default function Services() {
                                   ? 'bg-gray-900/50' 
                                   : 'bg-white/50'
                               }`}
-                              style={{ transitionDelay: `${idx * 50}ms` }}
+                              style={{ transitionDelay: `${featureIdx * 50}ms` }}
                             >
                               <div className={`flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0 transition-all duration-500 ${
-                                hoveredService === service.id
+                                hoveredService === (service._id || service.id || idx)
                                   ? 'bg-primary/20 scale-110'
                                   : theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
                               }`}>
                                 <CheckCircle className={`w-5 h-5 transition-colors ${
-                                  hoveredService === service.id ? 'text-primary' : 'text-primary/60'
+                                  hoveredService === (service._id || service.id || idx) ? 'text-primary' : 'text-primary/60'
                                 }`} />
                               </div>
                               <span className={`text-sm sm:text-base font-medium transition-colors ${
@@ -222,11 +288,11 @@ export default function Services() {
 
                     {/* Gradient Accents */}
                     <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent transition-opacity duration-700 ${
-                      hoveredService === service.id ? 'opacity-100' : 'opacity-0'
+                      hoveredService === (service._id || service.id || idx) ? 'opacity-100' : 'opacity-0'
                     }`}></div>
                     
                     <div className={`absolute bottom-0 left-0 h-2 bg-gradient-to-r from-primary via-primary-light to-primary transition-all duration-700 ${
-                      hoveredService === service.id ? 'w-full shadow-glow-orange' : 'w-0'
+                      hoveredService === (service._id || service.id || idx) ? 'w-full shadow-glow-orange' : 'w-0'
                     }`}></div>
                   </div>
                 </div>
