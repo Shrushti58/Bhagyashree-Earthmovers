@@ -2,10 +2,25 @@ import Service from "../models/Service.js";
 
 export const createService = async (req, res) => {
   try {
-    const service = await Service.create(req.body);
-    res.status(201).json(service);
+    const { title, description, features } = req.body;
+
+    if (!title || !description) {
+      return res.status(400).json({ message: "Title and description are required" });
+    }
+
+    const newService = new Service({
+      title,
+      description,
+      features: features ? JSON.parse(features) : [], 
+      image: req.file?.path || "", 
+    });
+
+    await newService.save();
+
+    res.status(201).json({ message: "Service created", service: newService });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
