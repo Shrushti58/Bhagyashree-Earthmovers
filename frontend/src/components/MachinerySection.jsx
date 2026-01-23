@@ -1,73 +1,102 @@
-import React, { useState } from 'react';
-import { Weight, Ruler, Settings, ArrowRight, Wrench } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Phone, MessageCircle, Loader, CheckCircle2, XCircle } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { API_URL } from '../config/api';
 
 export default function MachinerySection() {
   const [hoveredMachine, setHoveredMachine] = useState(null);
+  const [machinery, setMachinery] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { theme } = useTheme();
 
-  const machinery = [
+  // Contact configuration
+  const CONTACT_CONFIG = {
+    phone: '+918208584646',
+    whatsapp: '+918208584646',
+  };
+
+  // Fallback machinery with enhanced data
+  const fallbackMachinery = [
     {
       id: 1,
       name: 'JCB NXT 205 Excavator',
-      description: 'Advanced hydraulic excavator with superior digging performance and fuel efficiency for heavy-duty construction projects.',
+      category: 'Excavator',
       image: './JCBEX205.jpg',
-      specs: [
-        { icon: Weight, label: 'Operating Weight', value: '~20.5 Tons' },
-        { icon: Settings, label: 'Bucket Capacity', value: '~1.02 m³' },
-        { icon: Ruler, label: 'Max Digging Depth', value: '~6.7 m' }
-      ],
-      bestFor: 'Heavy excavation, road construction, foundations'
+      available: true,
+      hourlyRate: '₹2,500',
+      bestFor: 'Large excavation, foundation work, heavy lifting'
     },
     {
       id: 2,
       name: 'Tata Hitachi EX 200',
-      description: 'High-performance excavator engineered for infrastructure development with exceptional fuel economy and digging force.',
+      category: 'Excavator',
       image: './TataHitachiEX_210.png',
-      specs: [
-        { icon: Weight, label: 'Operating Weight', value: '~20 Tons' },
-        { icon: Settings, label: 'High Fuel Efficiency', value: 'Yes' },
-        { icon: Wrench, label: 'Strong Digging Force', value: 'Yes' }
-      ],
-      bestFor: 'Infrastructure projects, mining, mass excavation'
+      available: true,
+      hourlyRate: '₹2,200',
+      bestFor: 'Road construction, mining, material handling'
     },
     {
       id: 3,
-      name: 'Hyundai R210 Excavator',
-      description: 'Robust excavator with heavy-duty boom and arm design, delivering high stability for demanding excavation tasks.',
+      name: 'Hyundai R210',
+      category: 'Excavator',
       image: './HyundaiR210.jpg',
-      specs: [
-        { icon: Weight, label: 'Operating Weight', value: '~21 Tons' },
-        { icon: Settings, label: 'Heavy-Duty Boom & Arm', value: 'Yes' },
-        { icon: Wrench, label: 'High Stability', value: 'Yes' }
-      ],
-      bestFor: 'Rock excavation, demolition, road projects'
+      available: false,
+      hourlyRate: '₹2,400',
+      bestFor: 'Heavy-duty excavation, demolition, trenching'
     },
     {
       id: 4,
-      name: 'Kubota U30 Mini Excavator',
-      description: 'Compact and maneuverable mini excavator with zero tail swing, ideal for confined spaces and urban construction.',
+      name: 'Kubota U30 Mini',
+      category: 'Mini Excavator',
       image: './KubotaU30.jpg',
-      specs: [
-        { icon: Weight, label: 'Operating Weight', value: '~3.3 Tons' },
-        { icon: Settings, label: 'Zero Tail Swing', value: 'Yes' },
-        { icon: Ruler, label: 'Compact & Maneuverable', value: 'Yes' }
-      ],
-      bestFor: 'Urban work, drainage, pipeline, confined spaces'
+      available: true,
+      hourlyRate: '₹1,200',
+      bestFor: 'Urban construction, landscaping, tight spaces'
     },
-    {
-      id: 5,
-      name: 'Tata Shinrai Prime',
-      description: 'CEV-V compliant excavator with Cummins engine, combining high productivity with superior fuel efficiency.',
-      image: './TataShinrai.jpg',
-      specs: [
-        { icon: Weight, label: 'Operating Weight', value: '~21 Tons' },
-        { icon: Settings, label: 'CEV-V Compliant', value: 'Cummins Engine' },
-        { icon: Wrench, label: 'High Productivity', value: 'Fuel Efficient' }
-      ],
-      bestFor: 'Highway construction, canal work, industrial excavation'
-    }
   ];
+
+  // Fetch machinery from API
+  useEffect(() => {
+    const fetchMachinery = async () => {
+      try {
+        setLoading(true);
+        const { data } = await axios.get(API_URL.EQUIPMENT);
+        const machineryData = Array.isArray(data) ? data : (data?.equipment || data?.data || []);
+        setMachinery(machineryData.length > 0 ? machineryData : fallbackMachinery);
+      } catch (err) {
+        console.error('Error fetching machinery:', err);
+        setMachinery(fallbackMachinery);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMachinery();
+  }, []);
+
+  // Handle WhatsApp booking
+  const handleWhatsAppBooking = (machine) => {
+    const message = `Hi! I'm interested in booking *${machine.name}* (${machine.category || 'Equipment'}).\n\nHourly Rate: ${machine.hourlyRate || 'Contact for pricing'}\n\nPlease provide availability details.`;
+    const whatsappUrl = `https://wa.me/${CONTACT_CONFIG.whatsapp}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  // Handle Phone call
+  const handlePhoneCall = (machine) => {
+    window.location.href = `tel:${CONTACT_CONFIG.phone}`;
+  };
+
+  if (loading) {
+    return (
+      <div className={`relative py-12 lg:py-20 transition-colors duration-300 ${
+        theme === 'dark' ? 'bg-brand-black' : 'bg-brand-white'
+      }`}>
+        <div className="flex justify-center items-center min-h-[400px]">
+          <Loader className="w-12 h-12 text-primary animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`relative py-12 lg:py-20 overflow-hidden transition-colors duration-300 ${
@@ -81,13 +110,9 @@ export default function MachinerySection() {
         }}></div>
       </div>
 
-      {/* Ambient Glow Effects */}
-      <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full blur-3xl opacity-20 bg-primary animate-pulse-slow"></div>
-      <div className="absolute bottom-1/4 -right-32 w-96 h-96 rounded-full blur-3xl opacity-20 bg-primary animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
-
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12 lg:mb-16 space-y-4">
+        <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
           <div className={`inline-flex items-center px-4 py-2 rounded-full border backdrop-blur-sm mb-4 ${
             theme === 'dark' ? 'border-primary/30 bg-primary/5' : 'border-primary/30 bg-primary/5'
           }`}>
@@ -103,195 +128,188 @@ export default function MachinerySection() {
           <p className={`text-base sm:text-lg transition-colors ${
             theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
           }`}>
-            Modern, Reliable & High-Performance Earthmoving Equipment
+            Modern, Reliable & High-Performance Equipment
           </p>
         </div>
 
-        {/* Machinery Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {machinery.map((machine) => {
+        {/* Enhanced Machinery Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {machinery.map((machine, index) => {
+            const machineId = machine._id || machine.id || index;
+            const isAvailable = machine.available !== false;
+            
             return (
               <div
-                key={machine.id}
-                onMouseEnter={() => setHoveredMachine(machine.id)}
+                key={machineId}
+                onMouseEnter={() => setHoveredMachine(machineId)}
                 onMouseLeave={() => setHoveredMachine(null)}
-                className={`group relative rounded-3xl overflow-hidden border-2 transition-all duration-700 ${
+                className={`group relative rounded-xl overflow-hidden border transition-all duration-500 ${
                   theme === 'dark'
-                    ? 'bg-gray-900 border-gray-800 hover:border-primary'
-                    : 'bg-white border-gray-200 hover:border-primary'
-                } ${hoveredMachine === machine.id ? 'shadow-glow-orange-lg' : 'shadow-xl'}`}
+                    ? 'bg-gray-900 border-gray-800 hover:border-primary/50'
+                    : 'bg-white border-gray-200 hover:border-primary/50'
+                } ${hoveredMachine === machineId ? 'shadow-glow-orange transform -translate-y-1' : 'shadow-lg'}`}
               >
-                {/* Image Container */}
-                <div className={`relative h-72 overflow-hidden ${
-                  theme === 'dark' ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-gray-100 to-gray-200'
+                {/* Image */}
+                <div className={`relative h-64 overflow-hidden ${
+                  theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
                 }`}>
-                  <div className="absolute inset-0 flex items-center justify-center p-6">
-                    <img
-                      src={machine.image}
-                      alt={machine.name}
-                      className={`w-full h-full object-contain transition-all duration-700 ${
-                        hoveredMachine === machine.id ? 'brightness-110' : 'brightness-100'
-                      }`}
-                    />
-                  </div>
+                  <img
+                    src={machine.image}
+                    alt={machine.name}
+                    className={`w-full h-full object-cover transition-all duration-700 ${
+                      hoveredMachine === machineId ? 'scale-105' : 'scale-100'
+                    } ${!isAvailable ? 'grayscale opacity-50' : ''}`}
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/400x300?text=Equipment';
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
                   
-                  {/* Gradient Overlay */}
-                  <div className={`absolute inset-0 transition-opacity duration-700 ${
-                    hoveredMachine === machine.id ? 'opacity-0' : 'opacity-100'
-                  } ${
-                    theme === 'dark' 
-                      ? 'bg-gradient-to-t from-gray-900/80 via-transparent to-transparent' 
-                      : 'bg-gradient-to-t from-white/80 via-transparent to-transparent'
-                  }`}></div>
-                  
-                  {/* Machine Number Badge */}
-                  <div className={`absolute top-6 left-6 w-14 h-14 rounded-2xl flex items-center justify-center backdrop-blur-md transition-all duration-500 ${
-                    hoveredMachine === machine.id
-                      ? 'bg-primary shadow-glow-orange scale-110'
-                      : theme === 'dark'
-                      ? 'bg-gray-900/90 border-2 border-gray-700'
-                      : 'bg-white/90 border-2 border-gray-300 shadow-lg'
-                  }`}>
-                    <span className={`text-xl font-bold transition-colors ${
-                      hoveredMachine === machine.id ? 'text-brand-white' : 'text-primary'
+                  {/* Status Badge */}
+                  <div className="absolute top-4 right-4">
+                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold backdrop-blur-sm ${
+                      isAvailable
+                        ? 'bg-green-500/90 text-white'
+                        : 'bg-gray-700/90 text-gray-300'
                     }`}>
-                      {String(machine.id).padStart(2, '0')}
-                    </span>
+                      {isAvailable ? (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Available
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="w-3.5 h-3.5" />
+                          Booked
+                        </>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Top Accent Line */}
-                  <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent transition-opacity duration-700 ${
-                    hoveredMachine === machine.id ? 'opacity-100' : 'opacity-0'
-                  }`}></div>
+                  {/* Category */}
+                  <div className="absolute bottom-4 left-4">
+                    <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 backdrop-blur-md text-white border border-white/20">
+                      {machine.category || 'Heavy Equipment'}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Content */}
-                <div className="p-6 lg:p-7 space-y-5">
-                  <div className="space-y-3">
-                    <h3 className={`text-xl lg:text-2xl font-bold transition-colors leading-tight ${
-                      theme === 'dark' ? 'text-brand-white' : 'text-brand-black'
+                <div className="p-6 space-y-4">
+                  {/* Header */}
+                  <div className="space-y-2">
+                    <h3 className={`font-bold text-xl leading-tight transition-colors ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
                     }`}>
                       {machine.name}
                     </h3>
-                    
-                    <p className={`text-sm leading-relaxed transition-colors ${
-                      theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
-                      {machine.description}
-                    </p>
-                  </div>
-
-                  {/* Specifications */}
-                  <div className="space-y-3">
-                    {machine.specs.map((spec, idx) => {
-                      const Icon = spec.icon;
-                      return (
-                        <div 
-                          key={idx}
-                          className={`flex items-center gap-3 p-3 rounded-xl border transition-all duration-500 ${
-                            hoveredMachine === machine.id 
-                              ? theme === 'dark' 
-                                ? 'bg-gray-800 border-gray-700' 
-                                : 'bg-gray-50 border-gray-200'
-                              : theme === 'dark'
-                              ? 'bg-gray-900/50 border-gray-800'
-                              : 'bg-gray-50/50 border-gray-100'
-                          }`}
-                        >
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-500 ${
-                            hoveredMachine === machine.id
-                              ? 'bg-primary/20 scale-110'
-                              : theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-                          }`}>
-                            <Icon className={`w-5 h-5 transition-colors ${
-                              hoveredMachine === machine.id ? 'text-primary' : 'text-primary/60'
-                            }`} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className={`text-xs font-medium mb-0.5 transition-colors ${
-                              theme === 'dark' ? 'text-gray-500' : 'text-gray-500'
-                            }`}>
-                              {spec.label}
-                            </p>
-                            <p className={`text-sm font-bold transition-colors truncate ${
-                              theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
-                            }`}>
-                              {spec.value}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    })}
                   </div>
 
                   {/* Best For */}
-                  <div className={`pt-5 mt-5 border-t-2 transition-colors ${
-                    theme === 'dark' ? 'border-gray-800' : 'border-gray-100'
-                  }`}>
-                    <div className="flex items-start gap-2 mb-2">
-                      <div className={`px-2 py-1 rounded text-xs font-bold transition-colors ${
-                        theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'
-                      }`}>
-                        BEST FOR
-                      </div>
-                    </div>
-                    <p className={`text-sm leading-relaxed transition-colors ${
-                      theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                  {machine.bestFor && (
+                    <div className={`p-4 rounded-lg transition-colors ${
+                      theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-50'
                     }`}>
-                      {machine.bestFor}
-                    </p>
-                  </div>
+                      <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${
+                        theme === 'dark' ? 'text-primary' : 'text-primary'
+                      }`}>
+                        Ideal For
+                      </p>
+                      <p className={`text-sm leading-relaxed ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
+                        {machine.bestFor}
+                      </p>
+                    </div>
+                  )}
 
-                  {/* CTA Button */}
-                  <button className={`w-full flex items-center justify-center gap-2 font-bold py-4 px-6 rounded-xl transition-all duration-500 ${
-                    hoveredMachine === machine.id 
-                      ? 'bg-primary text-brand-white shadow-glow-orange translate-y-0'
-                      : theme === 'dark'
-                      ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 translate-y-1'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 translate-y-1'
-                  }`}>
-                    <span className="text-sm">Contact for Availability</span>
-                    <ArrowRight className={`w-5 h-5 transition-transform ${
-                      hoveredMachine === machine.id ? 'translate-x-1' : ''
-                    }`} />
-                  </button>
+                  {/* Pricing */}
+                  {machine.hourlyRate && (
+                    <div className={`flex items-baseline gap-2 pt-2 border-t ${
+                      theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
+                    }`}>
+                      <span className="text-3xl font-bold text-primary">
+                        {machine.hourlyRate}
+                      </span>
+                      <span className={`text-sm ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                      }`}>
+                        per hour
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  {isAvailable ? (
+                    <div className="flex gap-3 pt-2">
+                      <button
+                        onClick={() => handleWhatsAppBooking(machine)}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-lg font-semibold text-sm text-white bg-green-600 hover:bg-green-700 transition-all shadow-md hover:shadow-lg"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        Book via WhatsApp
+                      </button>
+                      <button
+                        onClick={() => handlePhoneCall(machine)}
+                        className="px-4 py-3.5 rounded-lg font-semibold text-sm text-white bg-primary hover:bg-primary/90 transition-all shadow-md hover:shadow-glow-orange"
+                      >
+                        <Phone className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      disabled
+                      className={`w-full px-4 py-3.5 rounded-lg font-semibold text-sm transition-colors ${
+                        theme === 'dark'
+                          ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      Currently Unavailable
+                    </button>
+                  )}
                 </div>
-
-                {/* Bottom Accent Bar */}
-                <div className={`absolute bottom-0 left-0 h-2 bg-gradient-to-r from-primary via-primary-light to-primary transition-all duration-700 ${
-                  hoveredMachine === machine.id ? 'w-full shadow-glow-orange' : 'w-0'
-                }`}></div>
               </div>
             );
           })}
         </div>
 
         {/* Bottom CTA */}
-        <div className={`mt-16 lg:mt-20 p-8 lg:p-12 rounded-3xl border relative overflow-hidden backdrop-blur-sm ${
+        <div className={`mt-12 p-6 rounded-2xl border relative overflow-hidden ${
           theme === 'dark'
-            ? 'bg-gradient-to-br from-gray-900/80 to-gray-950/80 border-gray-800'
-            : 'bg-gradient-to-br from-gray-50/80 to-white/80 border-gray-200'
+            ? 'bg-gray-900/80 border-gray-800'
+            : 'bg-gray-50 border-gray-200'
         }`}>
-          <div className="absolute top-0 right-0 w-80 h-80 rounded-full blur-3xl opacity-20 bg-primary"></div>
-          
-          <div className="relative flex flex-col lg:flex-row items-center justify-between gap-6">
-            <div className="space-y-3 text-center lg:text-left">
-              <h3 className={`text-2xl sm:text-3xl font-bold transition-colors ${
-                theme === 'dark' ? 'text-brand-white' : 'text-brand-black'
+          <div className="relative flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-center sm:text-left">
+              <h3 className={`text-xl font-bold mb-2 ${
+                theme === 'dark' ? 'text-white' : 'text-black'
               }`}>
-                Need Specialized Equipment?
+                Need Help Choosing Equipment?
               </h3>
-              <p className={`text-base sm:text-lg transition-colors ${
+              <p className={`text-sm ${
                 theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
               }`}>
-                Our team can arrange customized machinery solutions for your specific project requirements.
+                Our experts can help you select the perfect machinery for your project.
               </p>
             </div>
 
-            <button className="group px-8 py-4 rounded-xl font-semibold text-brand-white bg-primary hover:shadow-glow-orange flex items-center gap-3 transition-all whitespace-nowrap">
-              Hire This Machine
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => window.open(`https://wa.me/${CONTACT_CONFIG.whatsapp}?text=${encodeURIComponent('Hi! I need help choosing the right equipment for my project.')}`, '_blank')}
+                className="flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-white bg-green-600 hover:bg-green-700 transition-all"
+              >
+                <MessageCircle className="w-4 h-4" />
+                Chat Now
+              </button>
+              <button
+                onClick={() => window.location.href = `tel:${CONTACT_CONFIG.phone}`}
+                className="flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-white bg-primary hover:shadow-glow-orange transition-all"
+              >
+                <Phone className="w-4 h-4" />
+                Call Us
+              </button>
+            </div>
           </div>
         </div>
       </div>

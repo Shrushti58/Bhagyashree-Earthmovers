@@ -1,15 +1,12 @@
 import mongoose from 'mongoose';
 
-const specSchema = new mongoose.Schema({
-    label: { type: String, required: true },
-    value: { type: String, required: true },
-});
-
 const equipmentSchema = new mongoose.Schema({
     name: { type: String, required: true },
+    category: { type: String, required: true },
     description: { type: String, required: true },
     image: { type: String },
-    specs: [specSchema],
+    available: { type: Boolean, default: true },
+    hourlyRate: { type: String, required: true },
     bestFor: { type: String },
 }, { timestamps: true });
 

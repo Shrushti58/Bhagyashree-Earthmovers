@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
   Plus, Edit2, Trash2, X, Image as ImageIcon, 
-  Loader, Save, Wrench, Upload 
+  Loader, Save, Wrench, Upload
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
@@ -18,9 +18,11 @@ export default function AdminEquipment() {
   const [imagePreview, setImagePreview] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
-    specifications: '',
     category: '',
+    description: '',
+    available: true,
+    hourlyRate: '',
+    bestFor: '',
     image: null
   });
   
@@ -35,11 +37,10 @@ export default function AdminEquipment() {
     try {
       setLoading(true);
       const { data } = await axios.get(API_URL.EQUIPMENT, { withCredentials: true });
-      // Handle both array and object responses
       setEquipment(Array.isArray(data) ? data : (data?.equipment || data?.data || []));
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to fetch equipment');
-      setEquipment([]); // Set to empty array on error
+      setEquipment([]);
     } finally {
       setLoading(false);
     }
@@ -67,7 +68,15 @@ export default function AdminEquipment() {
 
   const openCreateModal = () => {
     setEditingItem(null);
-    setFormData({ name: '', description: '', specifications: '', category: '', image: null });
+    setFormData({ 
+      name: '', 
+      category: '',
+      description: '',
+      available: true,
+      hourlyRate: '',
+      bestFor: '', 
+      image: null 
+    });
     setImagePreview(null);
     setShowModal(true);
   };
@@ -76,9 +85,11 @@ export default function AdminEquipment() {
     setEditingItem(item);
     setFormData({
       name: item.name,
-      description: item.description,
-      specifications: item.specifications || '',
       category: item.category || '',
+      description: item.description,
+      available: item.available !== false,
+      hourlyRate: item.hourlyRate || '',
+      bestFor: item.bestFor || '',
       image: null
     });
     setImagePreview(item.image || null);
@@ -88,14 +99,14 @@ export default function AdminEquipment() {
   const closeModal = () => {
     setShowModal(false);
     setEditingItem(null);
-    setFormData({ name: '', description: '', specifications: '', category: '', image: null });
+    setFormData({ name: '', category: '', description: '', available: true, hourlyRate: '', bestFor: '', image: null });
     setImagePreview(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.description) {
+    if (!formData.name || !formData.category || !formData.description || !formData.hourlyRate) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -105,9 +116,11 @@ export default function AdminEquipment() {
     try {
       const formDataToSend = new FormData();
       formDataToSend.append('name', formData.name);
+      formDataToSend.append('category', formData.category);
       formDataToSend.append('description', formData.description);
-      if (formData.specifications) formDataToSend.append('specifications', formData.specifications);
-      if (formData.category) formDataToSend.append('category', formData.category);
+      formDataToSend.append('available', formData.available);
+      formDataToSend.append('hourlyRate', formData.hourlyRate);
+      if (formData.bestFor) formDataToSend.append('bestFor', formData.bestFor);
       if (formData.image) formDataToSend.append('image', formData.image);
 
       if (editingItem) {
@@ -118,7 +131,7 @@ export default function AdminEquipment() {
         );
         toast.success('Equipment updated successfully!');
         setEquipment(prev =>
-          prev.map(item => (item._id === editingItem._id ? data.equipment : item))
+          prev.map(item => (item._id === editingItem._id ? (data.equipment || data) : item))
         );
       } else {
         const { data } = await axios.post(
@@ -127,7 +140,7 @@ export default function AdminEquipment() {
           { withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' } }
         );
         toast.success('Equipment created successfully!');
-        setEquipment(prev => [data.equipment, ...prev]);
+        setEquipment(prev => [(data.equipment || data), ...prev]);
       }
 
       closeModal();
@@ -210,8 +223,8 @@ export default function AdminEquipment() {
                 key={item._id}
                 className={`rounded-2xl border-2 overflow-hidden transition-all hover:shadow-xl ${
                   theme === 'dark' 
-                    ? 'bg-gray-900/50 border-gray-800' 
-                    : 'bg-white border-gray-200'
+                    ? 'bg-gray-900/50 border-gray-800 hover:border-primary/50' 
+                    : 'bg-white border-gray-200 hover:border-primary/50'
                 }`}
               >
                 {item.image && (
@@ -231,24 +244,48 @@ export default function AdminEquipment() {
                     {item.name}
                   </h3>
 
-                  {item.category && (
-                    <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-primary/20 text-primary mb-3">
-                      {item.category}
-                    </span>
-                  )}
+                  <div className={`inline-block px-3 py-1 rounded-full text-xs font-semibold mb-3 ${
+                    theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'
+                  }`}>
+                    {item.category}
+                  </div>
 
-                  <p className={`text-sm mb-4 line-clamp-2 ${
+                  <p className={`text-sm mb-3 line-clamp-2 ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                   }`}>
                     {item.description}
                   </p>
 
-                  {item.specifications && (
-                    <p className={`text-xs mb-4 ${
-                      theme === 'dark' ? 'text-gray-500' : 'text-gray-500'
+                  {item.hourlyRate && (
+                    <div className={`text-lg font-bold mb-3 ${
+                      theme === 'dark' ? 'text-primary' : 'text-primary'
                     }`}>
-                      {item.specifications}
-                    </p>
+                      {item.hourlyRate} <span className={`text-sm font-normal ${
+                        theme === 'dark' ? 'text-gray-500' : 'text-gray-500'
+                      }`}>per hour</span>
+                    </div>
+                  )}
+
+                  <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-semibold mb-4 ${
+                    item.available
+                      ? 'bg-green-500/20 text-green-400'
+                      : 'bg-red-500/20 text-red-400'
+                  }`}>
+                    <div className={`w-2 h-2 rounded-full ${
+                      item.available ? 'bg-green-400' : 'bg-red-400'
+                    }`}></div>
+                    {item.available ? 'Available' : 'Unavailable'}
+                  </div>
+
+                  {item.bestFor && (
+                    <div className={`text-xs mb-4 p-3 rounded-lg ${
+                      theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                    }`}>
+                      <span className="font-semibold text-primary">Best For: </span>
+                      <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                        {item.bestFor}
+                      </span>
+                    </div>
                   )}
 
                   <div className="flex gap-2 pt-4 border-t border-gray-800">
@@ -285,8 +322,8 @@ export default function AdminEquipment() {
               ? 'bg-gray-900 border-gray-800' 
               : 'bg-white border-gray-200'
           }`}>
-            <div className={`p-6 border-b flex justify-between items-center ${
-              theme === 'dark' ? 'border-gray-800' : 'border-gray-200'
+            <div className={`p-6 border-b flex justify-between items-center sticky top-0 z-10 ${
+              theme === 'dark' ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'
             }`}>
               <h2 className={`text-2xl font-bold ${
                 theme === 'dark' ? 'text-white' : 'text-black'
@@ -306,6 +343,7 @@ export default function AdminEquipment() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              {/* Equipment Name */}
               <div className="space-y-2">
                 <label className={`block text-sm font-semibold ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
@@ -317,7 +355,8 @@ export default function AdminEquipment() {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="Enter equipment name"
+                  placeholder="e.g., JCB NXT 205 Excavator"
+                  required
                   className={`w-full px-4 py-3 rounded-lg border-2 outline-none transition-all ${
                     theme === 'dark'
                       ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-primary'
@@ -326,18 +365,20 @@ export default function AdminEquipment() {
                 />
               </div>
 
+              {/* Category */}
               <div className="space-y-2">
                 <label className={`block text-sm font-semibold ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  Category
+                  Category *
                 </label>
                 <input
                   type="text"
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  placeholder="e.g., Heavy Machinery, Tools"
+                  placeholder="e.g., Excavator, Mini Excavator, Bulldozer"
+                  required
                   className={`w-full px-4 py-3 rounded-lg border-2 outline-none transition-all ${
                     theme === 'dark'
                       ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-primary'
@@ -346,6 +387,7 @@ export default function AdminEquipment() {
                 />
               </div>
 
+              {/* Description */}
               <div className="space-y-2">
                 <label className={`block text-sm font-semibold ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
@@ -356,8 +398,9 @@ export default function AdminEquipment() {
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
-                  placeholder="Enter equipment description"
+                  placeholder="Enter detailed description of the equipment"
                   rows="4"
+                  required
                   className={`w-full px-4 py-3 rounded-lg border-2 outline-none transition-all resize-none ${
                     theme === 'dark'
                       ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-primary'
@@ -366,19 +409,21 @@ export default function AdminEquipment() {
                 />
               </div>
 
+              {/* Hourly Rate */}
               <div className="space-y-2">
                 <label className={`block text-sm font-semibold ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  Specifications
+                  Hourly Rate *
                 </label>
-                <textarea
-                  name="specifications"
-                  value={formData.specifications}
+                <input
+                  type="text"
+                  name="hourlyRate"
+                  value={formData.hourlyRate}
                   onChange={handleChange}
-                  placeholder="Enter technical specifications"
-                  rows="3"
-                  className={`w-full px-4 py-3 rounded-lg border-2 outline-none transition-all resize-none ${
+                  placeholder="e.g., ₹2,500"
+                  required
+                  className={`w-full px-4 py-3 rounded-lg border-2 outline-none transition-all ${
                     theme === 'dark'
                       ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-primary'
                       : 'bg-gray-50 border-gray-300 text-black placeholder-gray-400 focus:border-primary'
@@ -386,6 +431,63 @@ export default function AdminEquipment() {
                 />
               </div>
 
+              {/* Availability */}
+              <div className="space-y-2">
+                <label className={`block text-sm font-semibold ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  Availability
+                </label>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="available"
+                      checked={formData.available === true}
+                      onChange={() => setFormData(prev => ({ ...prev, available: true }))}
+                      className="w-4 h-4 text-primary focus:ring-primary"
+                    />
+                    <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                      Available
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="available"
+                      checked={formData.available === false}
+                      onChange={() => setFormData(prev => ({ ...prev, available: false }))}
+                      className="w-4 h-4 text-primary focus:ring-primary"
+                    />
+                    <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                      Unavailable
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Best For */}
+              <div className="space-y-2">
+                <label className={`block text-sm font-semibold ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  Best For
+                </label>
+                <input
+                  type="text"
+                  name="bestFor"
+                  value={formData.bestFor}
+                  onChange={handleChange}
+                  placeholder="e.g., Heavy excavation, road construction, foundations"
+                  className={`w-full px-4 py-3 rounded-lg border-2 outline-none transition-all ${
+                    theme === 'dark'
+                      ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-primary'
+                      : 'bg-gray-50 border-gray-300 text-black placeholder-gray-400 focus:border-primary'
+                  }`}
+                />
+              </div>
+
+              {/* Equipment Image */}
               <div className="space-y-2">
                 <label className={`block text-sm font-semibold ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
@@ -448,7 +550,8 @@ export default function AdminEquipment() {
                 </label>
               </div>
 
-              <div className="flex gap-3 pt-4">
+              {/* Submit Buttons */}
+              <div className="flex gap-3 pt-4 border-t border-gray-700">
                 <button
                   type="button"
                   onClick={closeModal}
