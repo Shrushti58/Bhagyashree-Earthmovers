@@ -53,7 +53,15 @@ export const registerAdmin = async (req, res) => {
     });
 };
 
-export const logoutAdmin = (req, res) => {
-    res.clearCookie("token");
-    res.json({ message: "Logged out" });
+export const adminLogout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
 };

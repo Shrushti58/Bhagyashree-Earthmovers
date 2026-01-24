@@ -2,6 +2,7 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
 import { ToastProvider } from './context/ToastContext';
+import { AdminAuthProvider } from "./context/AdminAuthContext";
 
 // Main Website Components
 import Navbar from "./components/Navbar";
@@ -17,6 +18,7 @@ import AdminRegister from "./components/AdminRegister";
 
 // Admin Dashboard & Components
 import AdminDashboard from "./pages/AdminDashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Main Home Page Component
 function HomePage() {
@@ -42,15 +44,6 @@ function HomePage() {
   );
 }
 
-// Protected Route Component (Optional - add authentication logic here)
-function ProtectedRoute({ children }) {
-  // TODO: Add your authentication check here
-  // const isAuthenticated = localStorage.getItem('token');
-  // if (!isAuthenticated) {
-  //   return <Navigate to="/admin/login" replace />;
-  // }
-  return children;
-}
 
 function App() {
   return (
@@ -58,35 +51,37 @@ function App() {
       <ToastProvider>
         <BrowserRouter>
           <Routes>
-            {/* Main Website Route */}
+
+            {/* Public Website */}
             <Route path="/" element={<HomePage />} />
-            
-            {/* Admin Authentication Routes */}
+
+            {/* Admin Auth (NO provider needed) */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/register" element={<AdminRegister />} />
-            
-            {/* Admin Dashboard Routes - All admin management in one place */}
-            <Route 
-              path="/admin/dashboard" 
+
+            {/* 🔐 ADMIN ROUTES ONLY */}
+            <Route
+              path="/admin/*"
               element={
-                <ProtectedRoute>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } 
+                <AdminAuthProvider>
+                  <Routes>
+                    <Route
+                      path="dashboard"
+                      element={
+                        <ProtectedRoute>
+                          <AdminDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route path="" element={<Navigate to="dashboard" replace />} />
+                  </Routes>
+                </AdminAuthProvider>
+              }
             />
-            
-            {/* Legacy admin routes - redirect to dashboard */}
-            <Route path="/admin/services" element={<Navigate to="/admin/dashboard" replace />} />
-            <Route path="/admin/equipment" element={<Navigate to="/admin/dashboard" replace />} />
-            <Route path="/admin/projects" element={<Navigate to="/admin/dashboard" replace />} />
-            <Route path="/admin/office-info" element={<Navigate to="/admin/dashboard" replace />} />
-            <Route path="/admin/contact-methods" element={<Navigate to="/admin/dashboard" replace />} />
-            
-            {/* Admin root redirect */}
-            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-            
-            {/* 404 Not Found - Redirect to home */}
+
+            {/* 404 */}
             <Route path="*" element={<Navigate to="/" replace />} />
+
           </Routes>
         </BrowserRouter>
       </ToastProvider>
