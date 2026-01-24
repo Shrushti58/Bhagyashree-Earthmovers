@@ -1,4 +1,3 @@
-// models/ContactInfo.js
 import mongoose from 'mongoose';
 
 const PhoneSchema = new mongoose.Schema({
@@ -75,7 +74,7 @@ const WorkingHoursSchema = new mongoose.Schema({
     required: true
   },
   openTime: {
-    type: String, // Format: "08:00"
+    type: String, 
     required: true
   },
   closeTime: {
@@ -86,7 +85,7 @@ const WorkingHoursSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  note: String // "Emergency only", "By appointment", etc.
+  note: String 
 });
 
 const SocialMediaSchema = new mongoose.Schema({
@@ -99,7 +98,7 @@ const SocialMediaSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  icon: String, // Icon class or URL
+  icon: String, 
   displayName: String,
   isActive: {
     type: Boolean,
@@ -108,7 +107,6 @@ const SocialMediaSchema = new mongoose.Schema({
 });
 
 const ContactInfoSchema = new mongoose.Schema({
-  // Basic Info
   businessName: {
     type: String,
     required: true,
@@ -122,24 +120,19 @@ const ContactInfoSchema = new mongoose.Schema({
   },
   website: String,
   
-  // Contact Methods
   phones: [PhoneSchema],
   addresses: [AddressSchema],
   
-  // Working Hours
   workingHours: [WorkingHoursSchema],
   
-  // Social Media
   socialMedia: [SocialMediaSchema],
   
-  // Additional Info
   emergencyContact: String,
   supportEmail: String,
   salesEmail: String,
   gstNumber: String,
   cinNumber: String,
   
-  // Metadata
   isActive: {
     type: Boolean,
     default: true
@@ -160,19 +153,16 @@ const ContactInfoSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes for faster queries
 ContactInfoSchema.index({ businessName: 1 });
 ContactInfoSchema.index({ isActive: 1 });
 ContactInfoSchema.index({ 'phones.type': 1 });
 
-// Static method to get active contact info
 ContactInfoSchema.statics.getActiveContactInfo = async function() {
   return this.findOne({ isActive: true })
     .select('-__v -createdAt -updatedAt')
     .lean();
 };
 
-// Instance method to format for frontend
 ContactInfoSchema.methods.formatForFrontend = function() {
   const contactInfo = this.toObject();
   

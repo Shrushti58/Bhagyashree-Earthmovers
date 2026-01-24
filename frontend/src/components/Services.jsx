@@ -3,6 +3,148 @@ import axios from 'axios';
 import { ArrowRight, CheckCircle, Loader } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { API_URL } from '../config/api';
+import { Link } from "react-scroll"; 
+
+const ServicesSkeleton = ({ theme }) => {
+  return (
+    <div className={`relative py-12 lg:py-20 overflow-hidden transition-colors duration-300 ${
+      theme === 'dark' ? 'bg-brand-black' : 'bg-brand-white'
+    }`}>
+      {/* Animated Background Grid */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `linear-gradient(#CC6500 1px, transparent 1px), linear-gradient(90deg, #CC6500 1px, transparent 1px)`,
+          backgroundSize: '50px 50px'
+        }}></div>
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header Skeleton */}
+        <div className="text-center max-w-3xl mx-auto mb-12 lg:mb-16 space-y-4">
+          <div className="flex justify-center mb-4">
+            <div className={`h-9 w-32 rounded-full animate-pulse ${
+              theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+            }`}></div>
+          </div>
+          
+          <div className="space-y-3">
+            <div className={`h-12 w-3/4 mx-auto rounded-lg animate-pulse ${
+              theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+            }`}></div>
+            <div className={`h-12 w-2/3 mx-auto rounded-lg animate-pulse ${
+              theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+            }`} style={{ animationDelay: '100ms' }}></div>
+          </div>
+          
+          <div className={`h-6 w-full max-w-2xl mx-auto rounded-lg animate-pulse ${
+            theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+          }`} style={{ animationDelay: '200ms' }}></div>
+        </div>
+
+        {/* Carousel Skeleton */}
+        <div className="relative">
+          <div className={`overflow-hidden rounded-3xl border ${
+            theme === 'dark' ? 'bg-gray-900/90 border-gray-800' : 'bg-white border-gray-200'
+          }`} style={{ minHeight: '500px' }}>
+            
+            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 p-6 sm:p-8 lg:p-12">
+              
+              {/* Left Column Skeleton */}
+              <div className="flex flex-col justify-center space-y-6">
+                {/* Number Badge Skeleton */}
+                <div className={`w-14 h-14 rounded-2xl animate-pulse ${
+                  theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+                }`}></div>
+
+                <div className="space-y-4">
+                  {/* Title Skeleton */}
+                  <div className="space-y-3">
+                    <div className={`h-10 w-4/5 rounded-lg animate-pulse ${
+                      theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+                    }`}></div>
+                    <div className={`h-10 w-3/5 rounded-lg animate-pulse ${
+                      theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+                    }`} style={{ animationDelay: '100ms' }}></div>
+                  </div>
+
+                  {/* Description Skeleton */}
+                  <div className="space-y-2 pt-2">
+                    <div className={`h-5 w-full rounded-lg animate-pulse ${
+                      theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+                    }`} style={{ animationDelay: '200ms' }}></div>
+                    <div className={`h-5 w-5/6 rounded-lg animate-pulse ${
+                      theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+                    }`} style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                </div>
+
+                {/* Button Skeleton */}
+                <div className={`h-14 w-40 rounded-xl animate-pulse ${
+                  theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+                }`} style={{ animationDelay: '400ms' }}></div>
+              </div>
+
+              {/* Right Column Skeleton - Features */}
+              <div className="flex flex-col justify-center">
+                <div className="space-y-3">
+                  {[...Array(4)].map((_, idx) => (
+                    <div 
+                      key={idx}
+                      className={`flex items-center gap-4 p-4 rounded-2xl animate-pulse ${
+                        theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-100/50'
+                      }`}
+                      style={{ animationDelay: `${idx * 100}ms` }}
+                    >
+                      <div className={`w-10 h-10 rounded-xl flex-shrink-0 ${
+                        theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+                      }`}></div>
+                      <div className={`h-5 flex-1 rounded-lg ${
+                        theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+                      }`}></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation Dots Skeleton */}
+          <div className="flex justify-center gap-2 mt-8">
+            {[...Array(4)].map((_, index) => (
+              <div
+                key={index}
+                className={`w-3 h-3 rounded-full animate-pulse ${
+                  theme === 'dark' ? 'bg-gray-700' : 'bg-gray-300'
+                }`}
+                style={{ animationDelay: `${index * 100}ms` }}
+              ></div>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom CTA Skeleton */}
+        <div className={`mt-16 lg:mt-20 p-8 lg:p-12 rounded-3xl border ${
+          theme === 'dark' ? 'bg-gray-900/80 border-gray-800' : 'bg-gray-50/80 border-gray-200'
+        }`}>
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+            <div className="space-y-3 text-center lg:text-left flex-1">
+              <div className={`h-8 w-80 max-w-full mx-auto lg:mx-0 rounded-lg animate-pulse ${
+                theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+              }`}></div>
+              <div className={`h-6 w-96 max-w-full mx-auto lg:mx-0 rounded-lg animate-pulse ${
+                theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+              }`} style={{ animationDelay: '100ms' }}></div>
+            </div>
+
+            <div className={`h-14 w-48 rounded-xl animate-pulse ${
+              theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+            }`} style={{ animationDelay: '200ms' }}></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function Services() {
   const [services, setServices] = useState([]);
@@ -13,7 +155,6 @@ export default function Services() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const { theme } = useTheme();
 
-  // Fallback services in case API fails
   const fallbackServices = [
     {
       id: 1,
@@ -45,7 +186,6 @@ export default function Services() {
     }
   ];
 
-  // Fetch services from API
   useEffect(() => {
     const fetchServices = async () => {
       try {
@@ -75,7 +215,6 @@ export default function Services() {
     fetchServices();
   }, []);
 
-  // Auto-play carousel
   useEffect(() => {
     if (!isAutoPlaying || services.length === 0) return;
     const timer = setInterval(() => {
@@ -84,20 +223,10 @@ export default function Services() {
     return () => clearInterval(timer);
   }, [isAutoPlaying, services.length]);
 
-  // Loading state
   if (loading) {
-    return (
-      <div className={`relative py-12 lg:py-20 overflow-hidden transition-colors duration-300 ${
-        theme === 'dark' ? 'bg-brand-black' : 'bg-brand-white'
-      }`}>
-        <div className="flex justify-center items-center min-h-[500px]">
-          <Loader className="w-12 h-12 text-primary animate-spin" />
-        </div>
-      </div>
-    );
+    return <ServicesSkeleton theme={theme} />;
   }
 
-  // No services state
   if (services.length === 0) {
     return (
       <div className={`relative py-12 lg:py-20 overflow-hidden transition-colors duration-300 ${
@@ -338,10 +467,17 @@ export default function Services() {
               </p>
             </div>
 
-            <button className="group px-8 py-4 rounded-xl font-semibold text-brand-white bg-primary hover:shadow-glow-orange flex items-center gap-3 transition-all whitespace-nowrap">
+            {/* Updated Button with Link to Contact Page */}
+            <Link 
+              to="contact" 
+              smooth={true}
+              duration={800}
+              offset={-80}
+              className="group px-8 py-4 rounded-xl font-semibold text-brand-white bg-primary hover:shadow-glow-orange flex items-center gap-3 transition-all whitespace-nowrap hover:scale-105 active:scale-95"
+            >
               Get Custom Quote
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
+            </Link>
           </div>
         </div>
       </div>
