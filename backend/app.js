@@ -34,7 +34,7 @@ app.use("/api/admin", authRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/equipment", equipmentRoutes);
-app.use("/api/contact-methods", contactMethodRoutes);
+app.use("/api/contact-info", contactMethodRoutes);
 app.use("/api/office-info", officeInfoRoutes);
 
 

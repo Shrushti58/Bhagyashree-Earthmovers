@@ -22,7 +22,6 @@ export default function AdminDashboard() {
     { id: 'services', label: 'Services', icon: Package },
     { id: 'equipment', label: 'Equipment', icon: Wrench },
     { id: 'projects', label: 'Projects', icon: FolderKanban },
-    { id: 'office-info', label: 'Office Info', icon: Building2 },
     { id: 'contact-methods', label: 'Contact Methods', icon: MessageSquare },
   ];
 
@@ -34,8 +33,6 @@ export default function AdminDashboard() {
         return <AdminEquipment />;
       case 'projects':
         return <AdminProjects />;
-      case 'office-info':
-        return <AdminOfficeInfo />;
       case 'contact-methods':
         return <AdminContactMethods />;
       case 'overview':

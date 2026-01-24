@@ -7,4 +7,5 @@ export const API_URL = {
   EQUIPMENT: `${BASE_URL}/api/equipment`,
   PROJECTS: `${BASE_URL}/api/projects`,
   AUTH: `${BASE_URL}/api/admin`,
+  CONTACT_INFO:`${BASE_URL}/api/contact-info`
 };

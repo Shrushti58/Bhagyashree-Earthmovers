@@ -1,168 +1,390 @@
-import React from 'react';
-import { Phone, Mail, MapPin, Clock, Facebook, Twitter, Instagram, Linkedin, ArrowRight, ChevronRight, MessageCircle, Send } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Phone, Mail, MapPin, Clock, Facebook, Twitter, Instagram, Linkedin, ArrowRight, MessageCircle, Send, CheckCircle, Globe, Building, Shield, Users, Award } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
-import { Link } from 'react-scroll';
+import axios from 'axios';
+import { API_URL } from '../config/api';
 
-export default function Footer() {
+export default function EnhancedFooter() {
   const { theme } = useTheme();
+  const [email, setEmail] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
+  const [contactInfo, setContactInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const services = [
-    { name: 'Excavation Work', to: 'services' },
-    { name: 'Land Leveling', to: 'services' },
-    { name: 'Site Preparation', to: 'services' },
-    { name: 'Material Loading', to: 'services' },
-    { name: 'Demolition Services', to: 'services' },
-    { name: 'Road Construction', to: 'services' }
+    { name: 'Excavation Work', id: 'services' },
+    { name: 'Land Leveling', id: 'services' },
+    { name: 'Site Preparation', id: 'services' },
+    { name: 'Material Loading', id: 'services' },
+    { name: 'Demolition Services', id: 'services' },
+    { name: 'Road Construction', id: 'services' }
   ];
 
   const quickLinks = [
-    { name: 'About Us', to: 'home' },
-    { name: 'Our Services', to: 'services' },
-    { name: 'Projects', to: 'projects' },
-    { name: 'Equipment', to: 'equipment' },
-    { name: 'Contact Us', to: 'contact' }
+    { name: 'About Us', id: 'home' },
+    { name: 'Our Services', id: 'services' },
+    { name: 'Projects', id: 'projects' },
+    { name: 'Equipment', id: 'equipment' },
+    { name: 'Contact Us', id: 'contact' }
   ];
 
-  const contactMethods = [
-    {
-      icon: Phone,
-      title: 'Call Us Now',
-      primary: '+91 98765 43210',
-      secondary: '+91 98765 43211',
-      action: 'tel:+919876543210',
-      btnText: 'Call Now',
-      bgColor: 'bg-green-500',
-      hoverColor: 'hover:bg-green-600'
-    },
-    {
-      icon: MessageCircle,
-      title: 'WhatsApp Us',
-      primary: '+91 98765 43210',
-      secondary: 'Quick Response',
-      action: 'https://wa.me/919876543210',
-      btnText: 'Chat Now',
-      bgColor: 'bg-green-600',
-      hoverColor: 'hover:bg-green-700'
-    },
-    {
-      icon: Mail,
-      title: 'Email Us',
-      primary: 'info@bhagyashree.com',
-      secondary: 'Quick Reply',
-      action: 'mailto:info@bhagyashreeearthmovers.com',
-      btnText: 'Send Email',
-      bgColor: 'bg-blue-600',
-      hoverColor: 'hover:bg-blue-700'
+  useEffect(() => {
+    fetchContactInfo();
+  }, []);
+
+  // Smooth scroll function
+  const scrollToSection = (sectionId, event) => {
+    if (event) event.preventDefault();
+    
+    const element = document.getElementById(sectionId);
+    if (element) {
+      window.scrollTo({
+        top: element.offsetTop - 80,
+        behavior: 'smooth'
+      });
     }
-  ];
+  };
 
-  const officeInfo = [
-    {
-      icon: MapPin,
-      title: 'Office Address',
-      details: ['Nagpur, Maharashtra', 'India - 440001']
-    },
-    {
-      icon: Clock,
-      title: 'Working Hours',
-      details: ['Mon - Sat: 8:00 AM - 7:00 PM', 'Sunday: Closed']
+  const fetchContactInfo = async () => {
+    try {
+      setLoading(true);
+      const { data } = await axios.get(API_URL.CONTACT_INFO);
+      setContactInfo(data);
+    } catch (err) {
+      console.error('Failed to fetch contact info:', err);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const socialLinks = [
-    { icon: Facebook, label: 'Facebook', href: '#' },
-    { icon: Twitter, label: 'Twitter', href: '#' },
-    { icon: Instagram, label: 'Instagram', href: '#' },
-    { icon: Linkedin, label: 'LinkedIn', href: '#' }
-  ];
+  const getPrimaryPhone = () => {
+    if (!contactInfo?.phones) return '+91 7620382150';
+    const primaryPhone = contactInfo.phones.find(phone => phone.type === 'primary' && phone.isActive);
+    return primaryPhone ? `${primaryPhone.countryCode || '+91'} ${primaryPhone.number}` : '+91 7620382150';
+  };
+
+  const getWhatsAppPhone = () => {
+    if (!contactInfo?.phones) return '917620382150';
+    const whatsappPhone = contactInfo.phones.find(phone => phone.type === 'whatsapp' && phone.isActive);
+    return whatsappPhone ? whatsappPhone.number.replace(/\D/g, '') : '917620382150';
+  };
+
+  const getBusinessEmail = () => {
+    return contactInfo?.businessEmail || 'bhagyashreeearthmovers@gmail.com';
+  };
+
+  const getMainAddress = () => {
+    if (!contactInfo?.addresses) return 'Karad, Maharashtra';
+    const mainAddress = contactInfo.addresses.find(addr => addr.type === 'main' && addr.isActive);
+    if (!mainAddress) return 'Karad, Maharashtra';
+    
+    return {
+      line1: mainAddress.line1,
+      line2: mainAddress.line2 || 'India - 415108',
+      mapsUrl: mainAddress.googleMapsUrl || 'https://maps.google.com'
+    };
+  };
+
+  const getWorkingHours = () => {
+    if (!contactInfo?.workingHours) {
+      return {
+        weekday: 'Mon - Sat: 8:00 AM - 8:00 PM',
+        weekend: 'Sunday: By Appointment'
+      };
+    }
+    
+    const formattedHours = {
+      monday: null, tuesday: null, wednesday: null, thursday: null, 
+      friday: null, saturday: null, sunday: null
+    };
+    
+    contactInfo.workingHours.forEach(hour => {
+      if (!hour.isClosed) {
+        formattedHours[hour.day] = `${hour.openTime} - ${hour.closeTime}`;
+      }
+    });
+    
+    // Create readable format
+    const weekdayHours = formattedHours.monday || '8:00 AM - 8:00 PM';
+    const weekendHours = formattedHours.sunday === null ? 'By Appointment' : formattedHours.sunday;
+    
+    return {
+      weekday: `Mon - Sat: ${weekdayHours}`,
+      weekend: `Sunday: ${weekendHours}`
+    };
+  };
+
+  const getSocialLinks = () => {
+    if (!contactInfo?.socialMedia) {
+      return [
+        { icon: Facebook, label: 'Facebook', href: '#', color: 'hover:bg-blue-600' },
+        { icon: Twitter, label: 'Twitter', href: '#', color: 'hover:bg-sky-500' },
+        { icon: Instagram, label: 'Instagram', href: '#', color: 'hover:bg-pink-600' },
+        { icon: Linkedin, label: 'LinkedIn', href: '#', color: 'hover:bg-blue-700' }
+      ];
+    }
+    
+    const iconMap = {
+      'facebook': Facebook,
+      'twitter': Twitter,
+      'instagram': Instagram,
+      'linkedin': Linkedin,
+      'youtube': Globe,
+      'whatsapp': MessageCircle,
+      'telegram': MessageSquare
+    };
+    
+    return contactInfo.socialMedia
+      .filter(social => social.isActive)
+      .map(social => ({
+        icon: iconMap[social.platform] || Globe,
+        label: social.platform.charAt(0).toUpperCase() + social.platform.slice(1),
+        href: social.url,
+        color: social.platform === 'facebook' ? 'hover:bg-blue-600' :
+               social.platform === 'twitter' ? 'hover:bg-sky-500' :
+               social.platform === 'instagram' ? 'hover:bg-pink-600' :
+               social.platform === 'linkedin' ? 'hover:bg-blue-700' :
+               'hover:bg-gray-600'
+      }));
+  };
+
+  const getEmergencyContact = () => {
+    if (!contactInfo?.phones) return getPrimaryPhone();
+    const emergencyPhone = contactInfo.phones.find(phone => phone.type === 'emergency' && phone.isActive);
+    return emergencyPhone ? `${emergencyPhone.countryCode || '+91'} ${emergencyPhone.number}` : getPrimaryPhone();
+  };
+
+  const getSupportEmail = () => {
+    return contactInfo?.supportEmail || getBusinessEmail();
+  };
+
+  // Event handlers for contact actions with pre-written messages
+  const handlePhoneCall = () => {
+    const phoneNumber = getPrimaryPhone().replace(/\s/g, '');
+    window.location.href = `tel:${phoneNumber}`;
+  };
+
+  const handleWhatsApp = () => {
+    const whatsappNumber = getWhatsAppPhone();
+    const message = `Hi! I'm interested in your earthmoving services. I found your contact from your website and would like to:\n\n• Get a quote for my project\n• Discuss equipment availability\n• Learn more about your services\n\nPlease share more information about your services and pricing.`;
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handleEmail = () => {
+    const email = getBusinessEmail();
+    const subject = "Inquiry About Earthmoving Services - From Website";
+
+    const body =
+      "Dear Bhagyashree Earthmovers Team,\n\n" +
+      "I am interested in your earthmoving services and would like to request:\n\n" +
+      "1. A quotation for my project\n" +
+      "2. Information about equipment availability\n" +
+      "3. Details about your service packages\n\n" +
+      "Thank you,\n" +
+      "[Your Name]";
+
+    const gmailUrl =
+      `https://mail.google.com/mail/?view=cm&fs=1` +
+      `&to=${encodeURIComponent(email)}` +
+      `&su=${encodeURIComponent(subject)}` +
+      `&body=${encodeURIComponent(body)}`;
+
+    window.open(gmailUrl, "_blank");
+  };
+
+  const handleEmergencyCall = () => {
+    const emergencyNumber = getEmergencyContact().replace(/\s/g, '');
+    window.location.href = `tel:${emergencyNumber}`;
+  };
+
+  const handleViewOnMap = () => {
+    const address = getMainAddress();
+    window.open(address.mapsUrl, '_blank');
+  };
+
+  const handleSubscribe = () => {
+    if (email) {
+      setSubscribed(true);
+      setTimeout(() => {
+        setSubscribed(false);
+        setEmail('');
+      }, 3000);
+    }
+  };
+
+  if (loading) {
+    return (
+      <footer className={`relative transition-colors duration-300 font-sans ${
+        theme === 'dark' ? 'bg-black' : 'bg-gray-900'
+      }`}>
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-800 rounded mb-8 w-1/3 mx-auto"></div>
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-40 bg-gray-800 rounded-xl"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </footer>
+    );
+  }
+
+  const primaryPhone = getPrimaryPhone();
+  const businessEmail = getBusinessEmail();
+  const address = getMainAddress();
+  const workingHours = getWorkingHours();
+  const socialLinks = getSocialLinks();
+  const emergencyContact = getEmergencyContact();
 
   return (
     <footer className={`relative transition-colors duration-300 font-sans ${
       theme === 'dark' ? 'bg-black' : 'bg-gray-900'
     }`}>
-      {/* Background pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `linear-gradient(#CC6500 1px, transparent 1px), linear-gradient(90deg, #CC6500 1px, transparent 1px)`,
-          backgroundSize: '50px 50px'
-        }}></div>
-      </div>
+      {/* Simple Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-orange-900/5"></div>
 
-      {/* Orange glow */}
-      <div className="absolute top-0 right-1/4 w-96 h-96 rounded-full blur-3xl opacity-10 bg-primary"></div>
-
-      <div className="relative">
-        {/* Quick Contact Section - NEW */}
-        <div className="max-w-7xl mx-auto px-6 pt-16 pb-8">
-          <div className="text-center mb-8">
-            <h3 className="text-3xl font-bold text-white mb-2">Get In Touch</h3>
-            <p className="text-gray-400">Choose your preferred way to contact us</p>
+      <div className="relative max-w-7xl mx-auto">
+        {/* Simple Contact Section */}
+        <div className="px-4 sm:px-6 pt-12 pb-8">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Need Help? Contact Us Today
+            </h3>
+            <p className="text-gray-400 text-lg">
+              We're here to help with all your earthmoving needs
+            </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            {contactMethods.map((method) => {
-              const Icon = method.icon;
-              return (
-                <div 
-                  key={method.title}
-                  className={`relative p-6 rounded-2xl border-2 transition-all ${
-                    theme === 'dark' 
-                      ? 'bg-gray-900/50 border-gray-800 hover:border-primary/50' 
-                      : 'bg-gray-800/50 border-gray-700 hover:border-primary/50'
-                  }`}
-                >
-                  <div className="flex flex-col items-center text-center">
-                    <div className={`w-16 h-16 rounded-full ${method.bgColor} flex items-center justify-center mb-4`}>
-                      <Icon className="w-8 h-8 text-white" />
-                    </div>
-                    <h4 className="text-xl font-bold text-white mb-2">{method.title}</h4>
-                    <p className="text-gray-300 font-semibold mb-1">{method.primary}</p>
-                    <p className="text-gray-400 text-sm mb-4">{method.secondary}</p>
-                    <a
-                      href={method.action}
-                      target={method.action.startsWith('http') ? '_blank' : '_self'}
-                      rel="noopener noreferrer"
-                      className={`w-full px-6 py-3 rounded-lg font-semibold text-white ${method.bgColor} ${method.hoverColor} flex items-center justify-center gap-2 transition-all`}
-                    >
-                      {method.btnText}
-                      <ArrowRight className="w-4 h-4" />
-                    </a>
-                  </div>
+          {/* Simple Contact Options */}
+          <div className="grid md:grid-cols-3 gap-6 mb-10">
+            {/* Phone Card */}
+            <div
+              onClick={handlePhoneCall}
+              className="group bg-gray-800/50 border border-gray-700 rounded-xl p-6 hover:bg-orange-500/10 hover:border-orange-500/30 transition-all duration-300 cursor-pointer"
+            >
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-14 h-14 bg-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Phone className="w-7 h-7 text-white" />
                 </div>
-              );
-            })}
+                <div className="flex-1">
+                  <h4 className="text-white font-bold text-xl mb-2">Call Us</h4>
+                  <p className="text-gray-400 text-sm">Speak directly with our team</p>
+                </div>
+              </div>
+              <div className="text-white font-semibold text-lg mb-2">{primaryPhone}</div>
+              <div className="text-orange-400 text-sm font-medium inline-flex items-center gap-2">
+                Call Now <ArrowRight className="w-4 h-4" />
+              </div>
+              <div className="mt-3 text-xs text-gray-500">Available 24/7</div>
+            </div>
+
+            {/* WhatsApp Card */}
+            <div
+              onClick={handleWhatsApp}
+              className="group bg-gray-800/50 border border-gray-700 rounded-xl p-6 hover:bg-green-500/10 hover:border-green-500/30 transition-all duration-300 cursor-pointer"
+            >
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-14 h-14 bg-green-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <MessageCircle className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-white font-bold text-xl mb-2">WhatsApp</h4>
+                  <p className="text-gray-400 text-sm">Chat instantly with photos</p>
+                </div>
+              </div>
+              <div className="text-white font-semibold text-lg mb-2">Quick Response</div>
+              <div className="text-green-400 text-sm font-medium inline-flex items-center gap-2">
+                Start Chat <ArrowRight className="w-4 h-4" />
+              </div>
+              <div className="mt-3 text-xs text-gray-500">Fastest way to connect</div>
+            </div>
+
+            {/* Email Card */}
+            <div
+              onClick={handleEmail}
+              className="group bg-gray-800/50 border border-gray-700 rounded-xl p-6 hover:bg-blue-500/10 hover:border-blue-500/30 transition-all duration-300 cursor-pointer"
+            >
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-14 h-14 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Mail className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-white font-bold text-xl mb-2">Email Us</h4>
+                  <p className="text-gray-400 text-sm">For detailed inquiries & quotes</p>
+                </div>
+              </div>
+              <div className="text-white font-semibold text-lg mb-2 break-all">{businessEmail}</div>
+              <div className="text-blue-400 text-sm font-medium inline-flex items-center gap-2">
+                Send Email <ArrowRight className="w-4 h-4" />
+              </div>
+              <div className="mt-3 text-xs text-gray-500">24hr response time</div>
+            </div>
+          </div>
+
+          {/* Office Information */}
+          <div className="bg-gray-800/30 rounded-xl p-6 border border-gray-700/50">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-6 h-6 text-orange-400" />
+                </div>
+                <div>
+                  <h5 className="text-white font-semibold mb-2">Office Location</h5>
+                  <p className="text-gray-400 text-sm">{address.line1}</p>
+                  <p className="text-gray-400 text-sm">{address.line2}</p>
+                  <button
+                    onClick={handleViewOnMap}
+                    className="text-orange-400 text-sm font-medium mt-2 inline-block hover:underline focus:outline-none"
+                  >
+                    View on Map →
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-6 h-6 text-orange-400" />
+                </div>
+                <div>
+                  <h5 className="text-white font-semibold mb-2">Working Hours</h5>
+                  <p className="text-gray-400 text-sm">{workingHours.weekday}</p>
+                  <p className="text-gray-400 text-sm">{workingHours.weekend}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Divider */}
-        <div className={`border-t ${theme === 'dark' ? 'border-gray-800' : 'border-gray-800'} mx-6`}></div>
-
         {/* Main Footer Content */}
-        <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="px-6 py-12 border-t border-gray-800">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
             
             {/* Company Info */}
             <div className="lg:col-span-1">
-              <div className="font-bold text-xl tracking-tight leading-tight text-white">BHAGYASHREE</div>
-              <div className="text-xs tracking-widest font-light text-primary mb-4">EARTHMOVERS</div>
+              <div className="mb-6">
+                <div className="font-bold text-2xl tracking-tight text-white">
+                  {contactInfo?.businessName?.toUpperCase() || 'BHAGYASHREE'}
+                </div>
+                <div className="text-xs tracking-widest font-light text-orange-500 mb-4">EARTHMOVERS</div>
+              </div>
               <p className="text-gray-400 mb-6 leading-relaxed">
                 Your trusted partner for heavy machinery services. Delivering excellence in earthmoving operations across Maharashtra.
               </p>
               
               {/* Social Links */}
               <div className="flex gap-3">
-                {socialLinks.map((social) => {
+                {socialLinks.map((social, index) => {
                   const Icon = social.icon;
                   return (
                     <a
-                      key={social.label}
+                      key={index}
                       href={social.href}
                       aria-label={social.label}
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center border transition-all ${
-                        theme === 'dark'
-                          ? 'bg-gray-900 border-gray-800 hover:bg-primary hover:border-primary text-gray-400 hover:text-white'
-                          : 'bg-gray-800 border-gray-700 hover:bg-primary hover:border-primary text-gray-400 hover:text-white'
-                      }`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
                     >
                       <Icon className="w-5 h-5" />
                     </a>
@@ -173,23 +395,16 @@ export default function Footer() {
 
             {/* Services */}
             <div>
-              <h4 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                <div className="w-1 h-6 bg-primary rounded-full"></div>
-                Our Services
-              </h4>
+              <h4 className="text-lg font-bold text-white mb-6">Our Services</h4>
               <ul className="space-y-3">
                 {services.map((service) => (
                   <li key={service.name}>
-                    <Link
-                      to={service.to}
-                      smooth={true}
-                      duration={800}
-                      offset={-80}
-                      className="text-gray-400 hover:text-primary transition-colors flex items-center gap-2 group cursor-pointer"
+                    <button
+                      onClick={(e) => scrollToSection(service.id, e)}
+                      className="text-gray-400 hover:text-orange-500 transition-colors block py-1 w-full text-left focus:outline-none"
                     >
-                      <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                       {service.name}
-                    </Link>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -197,100 +412,50 @@ export default function Footer() {
 
             {/* Quick Links */}
             <div>
-              <h4 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                <div className="w-1 h-6 bg-primary rounded-full"></div>
-                Quick Links
-              </h4>
+              <h4 className="text-lg font-bold text-white mb-6">Quick Links</h4>
               <ul className="space-y-3">
                 {quickLinks.map((link) => (
                   <li key={link.name}>
-                    <Link
-                      to={link.to}
-                      smooth={true}
-                      duration={800}
-                      offset={-80}
-                      className="text-gray-400 hover:text-primary transition-colors flex items-center gap-2 group cursor-pointer"
+                    <button
+                      onClick={(e) => scrollToSection(link.id, e)}
+                      className="text-gray-400 hover:text-orange-500 transition-colors block py-1 w-full text-left focus:outline-none"
                     >
-                      <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                       {link.name}
-                    </Link>
+                    </button>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Office Info */}
+            {/* Emergency Contact */}
             <div>
-              <h4 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                <div className="w-1 h-6 bg-primary rounded-full"></div>
-                Office Info
-              </h4>
-              <div className="space-y-5">
-                {officeInfo.map((info) => {
-                  const Icon = info.icon;
-                  return (
-                    <div key={info.title} className="flex gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                        theme === 'dark'
-                          ? 'bg-gray-900 text-primary'
-                          : 'bg-gray-800 text-primary'
-                      }`}>
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="text-white font-semibold text-sm mb-1">{info.title}</div>
-                        {info.details.map((detail, idx) => (
-                          <div key={idx} className="text-gray-400 text-sm">{detail}</div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Newsletter Section */}
-        <div className={`border-t ${theme === 'dark' ? 'border-gray-800' : 'border-gray-800'}`}>
-          <div className="max-w-7xl mx-auto px-6 py-8">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="text-center md:text-left">
-                <h5 className="text-white font-bold text-lg mb-1">Get Project Updates</h5>
-                <p className="text-gray-400 text-sm">Subscribe to our newsletter for latest projects and offers</p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className={`px-4 py-3 rounded-lg border outline-none focus:ring-2 focus:ring-primary transition-all w-full sm:w-64 ${
-                    theme === 'dark'
-                      ? 'bg-gray-900 border-gray-800 text-white placeholder-gray-500'
-                      : 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
-                  }`}
-                />
-                <button className="px-6 py-3 rounded-lg font-semibold text-white bg-primary hover:shadow-glow-orange flex items-center justify-center gap-2 transition-all whitespace-nowrap">
-                  Subscribe
-                  <Send className="w-4 h-4" />
+              <h4 className="text-lg font-bold text-white mb-6">Emergency Contact</h4>
+              <div className="bg-gray-800/50 rounded-xl p-5 border border-orange-500/30">
+                <div className="text-orange-500 font-semibold text-sm mb-2">24/7 Available</div>
+                <button
+                  onClick={handleEmergencyCall}
+                  className="text-white font-bold text-xl mb-3 block hover:text-orange-500 transition-colors text-left w-full focus:outline-none"
+                >
+                  {emergencyContact}
+                </button>
+                <p className="text-gray-400 text-sm mb-4">For urgent equipment needs</p>
+                <button
+                  onClick={handleEmergencyCall}
+                  className="w-full px-4 py-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-colors text-center focus:outline-none"
+                >
+                  Call Now
                 </button>
               </div>
             </div>
+
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className={`border-t ${theme === 'dark' ? 'border-gray-800' : 'border-gray-800'}`}>
-          <div className="max-w-7xl mx-auto px-6 py-6">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
-              <div className="text-center md:text-left">
-                © {new Date().getFullYear()} Bhagyashree Earthmovers. All rights reserved.
-              </div>
-              <div className="flex flex-wrap items-center justify-center gap-6">
-                <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>
-                <a href="#" className="hover:text-primary transition-colors">Terms of Service</a>
-                <a href="#" className="hover:text-primary transition-colors">Sitemap</a>
-              </div>
+        <div className="border-t border-gray-800 px-6 py-6">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-sm text-gray-400">
+            <div className="text-center md:text-left">
+              © {new Date().getFullYear()} {contactInfo?.businessName || 'Bhagyashree Earthmovers'}. All rights reserved.
             </div>
           </div>
         </div>
@@ -298,3 +463,6 @@ export default function Footer() {
     </footer>
   );
 }
+
+// Import missing icon
+const MessageSquare = MessageCircle;

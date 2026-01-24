@@ -81,19 +81,7 @@ export default function Navbar() {
 
             {/* Right Section */}
             <div className="hidden lg:flex items-center gap-4">
-              {/* Phone Number */}
-              <a 
-                href="tel:+919876543210" 
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                  theme === 'dark'
-                    ? 'text-gray-300 hover:bg-white/5'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <Phone className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium">+91 98765 43210</span>
-              </a>
-
+              
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
@@ -166,19 +154,7 @@ export default function Navbar() {
                 </Link>
               ))}
               
-              <div className="pt-4 border-t border-gray-700/50 space-y-3">
-                <a 
-                  href="tel:+919876543210" 
-                  className={`flex items-center gap-3 py-3 px-4 rounded-xl ${
-                    theme === 'dark'
-                      ? 'text-gray-300 hover:bg-white/5'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <Phone className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium">+91 98765 43210</span>
-                </a>
-              </div>
+             
             </div>
           </div>
         </div>

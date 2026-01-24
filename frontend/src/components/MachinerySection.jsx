@@ -7,14 +7,10 @@ import { API_URL } from '../config/api';
 export default function MachinerySection() {
   const [hoveredMachine, setHoveredMachine] = useState(null);
   const [machinery, setMachinery] = useState([]);
+  const [contactInfo, setContactInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [contactLoading, setContactLoading] = useState(true);
   const { theme } = useTheme();
-
-  // Contact configuration
-  const CONTACT_CONFIG = {
-    phone: '+918208584646',
-    whatsapp: '+918208584646',
-  };
 
   // Fallback machinery with enhanced data
   const fallbackMachinery = [
@@ -56,6 +52,29 @@ export default function MachinerySection() {
     },
   ];
 
+  // Fetch contact info from API
+  useEffect(() => {
+    const fetchContactInfo = async () => {
+      try {
+        setContactLoading(true);
+        const { data } = await axios.get(API_URL.CONTACT_INFO);
+        setContactInfo(data);
+      } catch (err) {
+        console.error('Error fetching contact info:', err);
+        // Use fallback contact info
+        setContactInfo({
+          phones: [
+            { type: 'primary', number: '8208584646', countryCode: '+91', isActive: true },
+            { type: 'whatsapp', number: '8208584646', countryCode: '+91', isActive: true }
+          ]
+        });
+      } finally {
+        setContactLoading(false);
+      }
+    };
+    fetchContactInfo();
+  }, []);
+
   // Fetch machinery from API
   useEffect(() => {
     const fetchMachinery = async () => {
@@ -74,6 +93,29 @@ export default function MachinerySection() {
     fetchMachinery();
   }, []);
 
+  // Get contact numbers from API
+  const getContactNumbers = () => {
+    if (!contactInfo?.phones || contactLoading) {
+      return {
+        phone: '+918208584646',
+        whatsapp: '+918208584646',
+      };
+    }
+
+    const activePhones = contactInfo.phones.filter(phone => phone.isActive);
+    
+    const primaryPhone = activePhones.find(phone => phone.type === 'primary') || activePhones[0];
+    const whatsappPhone = activePhones.find(phone => phone.type === 'whatsapp') || primaryPhone;
+
+    return {
+      phone: `${primaryPhone?.countryCode || '+91'}${primaryPhone?.number || '8208584646'}`.replace(/\s/g, ''),
+      whatsapp: `${whatsappPhone?.countryCode || '+91'}${whatsappPhone?.number || '8208584646'}`.replace(/\s/g, '')
+    };
+  };
+
+  // Get contact info dynamically
+  const CONTACT_CONFIG = getContactNumbers();
+
   // Handle WhatsApp booking
   const handleWhatsAppBooking = (machine) => {
     const message = `Hi! I'm interested in booking *${machine.name}* (${machine.category || 'Equipment'}).\n\nHourly Rate: ${machine.hourlyRate || 'Contact for pricing'}\n\nPlease provide availability details.`;
@@ -86,7 +128,7 @@ export default function MachinerySection() {
     window.location.href = `tel:${CONTACT_CONFIG.phone}`;
   };
 
-  if (loading) {
+  if (loading || contactLoading) {
     return (
       <div className={`relative py-12 lg:py-20 transition-colors duration-300 ${
         theme === 'dark' ? 'bg-brand-black' : 'bg-brand-white'
