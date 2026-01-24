@@ -91,13 +91,17 @@ export default function Hero() {
 
             {/* CTA Buttons */}
             <div className="flex flex-wrap gap-4 pt-4">
-              <a 
-                href={`tel:${CONTACT_INFO.phone}`}
-                className="group px-6 py-3 rounded-lg font-semibold text-white bg-primary hover:shadow-glow-orange flex items-center gap-3 transition-all cursor-pointer"
-              >
-                <Phone className="w-5 h-5" />
-                Get Quote
-              </a>
+              {/* Updated Button with Link to Contact Page */}
+            <Link 
+              to="contact" 
+              smooth={true}
+              duration={800}
+              offset={-80}
+              className="group px-8 py-4 rounded-xl font-semibold text-brand-white bg-primary hover:shadow-glow-orange flex items-center gap-3 transition-all whitespace-nowrap hover:scale-105 active:scale-95"
+            >
+              Get Quote
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
               
               <Link
                 to="services"
@@ -118,11 +122,11 @@ export default function Hero() {
             {/* Stats */}
             <div className="flex flex-wrap gap-6 sm:gap-8 pt-4">
               <div>
-                <div className="text-2xl sm:text-3xl font-bold text-primary">15+</div>
+                <div className="text-2xl sm:text-3xl font-bold text-primary">7+</div>
                 <div className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Years Experience</div>
               </div>
               <div>
-                <div className="text-2xl sm:text-3xl font-bold text-primary">500+</div>
+                <div className="text-2xl sm:text-3xl font-bold text-primary">300+</div>
                 <div className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Projects Completed</div>
               </div>
             </div>

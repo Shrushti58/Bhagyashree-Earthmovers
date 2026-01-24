@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Phone, MessageCircle, Loader, CheckCircle2, XCircle } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { API_URL } from '../config/api';
+import MachinerySkeleton from './MachinerySkeleton';
 
 export default function MachinerySection() {
   const [hoveredMachine, setHoveredMachine] = useState(null);
@@ -116,29 +117,19 @@ export default function MachinerySection() {
   // Get contact info dynamically
   const CONTACT_CONFIG = getContactNumbers();
 
-  // Handle WhatsApp booking
   const handleWhatsAppBooking = (machine) => {
     const message = `Hi! I'm interested in booking *${machine.name}* (${machine.category || 'Equipment'}).\n\nHourly Rate: ${machine.hourlyRate || 'Contact for pricing'}\n\nPlease provide availability details.`;
     const whatsappUrl = `https://wa.me/${CONTACT_CONFIG.whatsapp}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
-  // Handle Phone call
   const handlePhoneCall = (machine) => {
     window.location.href = `tel:${CONTACT_CONFIG.phone}`;
   };
 
   if (loading || contactLoading) {
-    return (
-      <div className={`relative py-12 lg:py-20 transition-colors duration-300 ${
-        theme === 'dark' ? 'bg-brand-black' : 'bg-brand-white'
-      }`}>
-        <div className="flex justify-center items-center min-h-[400px]">
-          <Loader className="w-12 h-12 text-primary animate-spin" />
-        </div>
-      </div>
-    );
-  }
+  return <MachinerySkeleton />;
+}
 
   return (
     <div className={`relative py-12 lg:py-20 overflow-hidden transition-colors duration-300 ${

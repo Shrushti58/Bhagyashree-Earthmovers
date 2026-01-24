@@ -3,6 +3,7 @@ import { Phone, Mail, MapPin, Clock, Facebook, Twitter, Instagram, Linkedin, Arr
 import { useTheme } from '../context/ThemeContext';
 import axios from 'axios';
 import { API_URL } from '../config/api';
+import FooterSkeleton from './FooterSkeleton';
 
 export default function EnhancedFooter() {
   const { theme } = useTheme();
@@ -214,22 +215,7 @@ export default function EnhancedFooter() {
   };
 
   if (loading) {
-    return (
-      <footer className={`relative transition-colors duration-300 font-sans ${
-        theme === 'dark' ? 'bg-black' : 'bg-gray-900'
-      }`}>
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-800 rounded mb-8 w-1/3 mx-auto"></div>
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-40 bg-gray-800 rounded-xl"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </footer>
-    );
+    return <FooterSkeleton/>
   }
 
   const primaryPhone = getPrimaryPhone();
