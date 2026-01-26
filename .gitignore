@@ -6,6 +6,7 @@ backend/node_modules
 # env
 .env
 frontend/.env
+frontend/.env.production
 backend/.env
 
 # builds
